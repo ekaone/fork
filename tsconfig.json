@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    /* Base Environment */
+    "target": "ES2024",
+    "lib": ["ES2024"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    
+    /* Strictness */
+    "strict": true,
+    "exactOptionalPropertyTypes": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,         // Recommended: Ensures 'override' keyword is used in classes
+    "noPropertyAccessFromIndexSignature": true, // Recommended: Prevents dot-notation for dynamic keys
+    
+    /* Emit & Performance */
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "outDir": "dist",
+    "rootDir": "src",
+    "skipLibCheck": true,               // Keeps build times fast
+    "esModuleInterop": true,            // Modern default for CJS/ESM compatibility
+    "forceConsistentCasingInFileNames": true,
+    
+    /* 2026 Optimization */
+    "isolatedDeclarations": false        // true: Speeds up builds in monorepos/large projects
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist", "tests"]
+}
