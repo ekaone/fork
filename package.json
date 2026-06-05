@@ -1,6 +1,6 @@
 {
   "name": "@ekaone/fork",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "A standalone, zero-dependency primitive for parallel exploration + selection. Generic decision-making pattern",
   "keywords": [
     "parallel",
