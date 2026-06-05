@@ -84,9 +84,10 @@ export function createFork<T, B extends Branch = Branch>(
       config.branches,
       async (branch) => {
         const start = Date.now();
+        let result: BranchResult<T, B>;
         try {
           const output = await config.run(branch);
-          return {
+          result = {
             label: branch.label,
             branch,
             status: "fulfilled",
@@ -94,7 +95,7 @@ export function createFork<T, B extends Branch = Branch>(
             durationMs: Date.now() - start,
           };
         } catch (err) {
-          return {
+          result = {
             label: branch.label,
             branch,
             status: "rejected",
@@ -102,6 +103,8 @@ export function createFork<T, B extends Branch = Branch>(
             durationMs: Date.now() - start,
           };
         }
+        config.onBranch?.(result);
+        return result;
       },
       poolOptions,
     );

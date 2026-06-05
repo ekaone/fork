@@ -107,6 +107,13 @@ export interface ForkConfig<T, B extends Branch = Branch> {
   concurrency?: number;
   /** Optional cancellation signal. Aborting stops scheduling further branches. */
   signal?: AbortSignal;
+  /**
+   * Called as each branch settles — fired immediately when a branch's `run`
+   * resolves or rejects, before the other branches finish. Useful for streaming
+   * progress to a UI or logging partial results without waiting for `explore()`
+   * to complete. Called for both `fulfilled` and `rejected` branches.
+   */
+  onBranch?: (result: BranchResult<T, B>) => void;
 }
 
 /** The result of {@link ForkHandle.explore}. */

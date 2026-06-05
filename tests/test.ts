@@ -381,6 +381,88 @@ describe("createFork — abort", () => {
   });
 });
 
+describe("createFork — onBranch callback", () => {
+  const pick: SelectionFn<string> = (r) => ({
+    winner: r.find((x) => x.status === "fulfilled")!.label,
+  });
+
+  it("is called once per branch (fulfilled)", async () => {
+    const seen: string[] = [];
+    await createFork({
+      branches: [{ label: "x" }, { label: "y" }, { label: "z" }],
+      run: (b) => b.label,
+      selection: pick,
+      onBranch: (r) => seen.push(r.label),
+    }).explore();
+    expect(seen.sort()).toEqual(["x", "y", "z"]);
+  });
+
+  it("is called for rejected branches too", async () => {
+    const statuses: string[] = [];
+    await createFork({
+      branches: [{ label: "ok" }, { label: "bad" }],
+      run: (b) => {
+        if (b.label === "bad") throw new Error("boom");
+        return "fine";
+      },
+      selection: pick,
+      onBranch: (r) => statuses.push(`${r.label}:${r.status}`),
+    }).explore();
+    expect(statuses.sort()).toEqual(["bad:rejected", "ok:fulfilled"]);
+  });
+
+  it("fires mid-flight — before explore() resolves — during parallel execution", async () => {
+    const events: string[] = [];
+    const fast = { label: "fast", ms: 10 };
+    const slow = { label: "slow", ms: 80 };
+
+    const explorePromise = createFork({
+      branches: [slow, fast],
+      run: async (b) => { await delay(b.ms); return b.label; },
+      selection: pick,
+      onBranch: (r) => events.push(`settled:${r.label}`),
+    }).explore();
+
+    // After a short wait fast should have fired but slow hasn't yet
+    await delay(40);
+    expect(events).toEqual(["settled:fast"]);
+
+    await explorePromise;
+    expect(events).toEqual(["settled:fast", "settled:slow"]);
+    events.push("done");
+    expect(events).toEqual(["settled:fast", "settled:slow", "done"]);
+  });
+
+  it("fires in input order with concurrency: 1", async () => {
+    const order: string[] = [];
+    const branches = [
+      { label: "a", ms: 30 },
+      { label: "b", ms: 10 },
+      { label: "c", ms: 20 },
+    ];
+    await createFork({
+      branches,
+      run: async (b) => { await delay(b.ms); return b.label; },
+      selection: pick,
+      concurrency: 1,
+      onBranch: (r) => order.push(r.label),
+    }).explore();
+    // Sequential: must follow input order regardless of ms duration
+    expect(order).toEqual(["a", "b", "c"]);
+  });
+
+  it("result passed to onBranch matches the final branches array entry", async () => {
+    let cbResult: BranchResult<string> | undefined;
+    const result = await createFork({
+      branches: [{ label: "only" }],
+      run: (b) => b.label,
+      selection: pick,
+      onBranch: (r) => { cbResult = r; },
+    }).explore();
+    expect(cbResult).toBe(result.branches[0]);
+  });
+});
+
 describe("createFork — nested forking", () => {
   it("supports a branch whose run() itself forks", async () => {
     const outer = await createFork({

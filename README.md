@@ -206,6 +206,7 @@ const fork = createFork<T, B>({
 | `onTie` | `'first' \| 'error' \| SelectionStrategy<T, B>` | Tie behavior. Default `'first'`. |
 | `concurrency` | `number` | Max branches running at once. **Omit for unbounded** (all in parallel). Don't pass `Infinity` — just leave it out. |
 | `signal` | `AbortSignal` | Aborting stops scheduling further branches; `explore()` rejects. |
+| `onBranch` | `(result: BranchResult<T, B>) => void` | Called as each branch settles (fulfilled **or** rejected), before the others finish. Useful for streaming progress to a UI. |
 
 ---
 
